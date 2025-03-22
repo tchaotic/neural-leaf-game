@@ -372,10 +372,24 @@ function initializeGame() {
     }
     
     // Make sure all functions are available globally
-    window.growTree = growTree;
+    // No need to reassign growTree since it's already defined as a function
     window.resetGame = resetGame;
     window.finishGame = finishGame;
     window.toggleBadgeTracker = toggleBadgeTracker;
+}
+
+// Update initializeGame function to add these modifications
+function enhancedInitializeGame() {
+    // Add the random event system styles
+    addRandomEventStyles();
+    
+    // Add lastEventGrowth property to gameState if it doesn't exist
+    if (!gameState.hasOwnProperty('lastEventGrowth')) {
+        gameState.lastEventGrowth = 0;
+    }
+    
+    // Call your original initialization
+    initializeGame();
 }
 
 // Handle tree growth based on choice

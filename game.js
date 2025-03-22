@@ -1,3 +1,6 @@
+
+console.log("Game script starting to load");
+
 // Initialize game state
 let gameState = {
     growth: 0,

@@ -21,16 +21,14 @@
   <p id="description">Your AI tree is evolving based on your choices.</p>
 
   <div class="button-container">
-  <button id="btnKnowledge">Feed AI Knowledge</button>
-  <button id="btnEthics">Guide AI Ethically</button>
-  <button id="btnData">Train with Data</button>
-  <button id="btnInnovation">Enhance with Innovation</button>
-  <button id="btnCollab">Improve Through Collaboration</button>
-  <button id="resetBtn" style="display:none;">Restart Game</button>
-  <button id="finishBtn">Finish Game</button>
-</div>
-
-
+    <button onclick="growTree('knowledge')">Feed AI Knowledge</button>
+    <button onclick="growTree('ethics')">Guide AI Ethically</button>
+    <button onclick="growTree('data')">Train with Data</button>
+    <button onclick="growTree('innovation')">Enhance with Innovation</button>
+    <button onclick="growTree('collaboration')">Improve Through Collaboration</button>
+    <button id="resetBtn" onclick="resetGame()" style="display:none;">Restart Game</button>
+    <button id="finishBtn" onclick="finishGame()">Finish Game</button>
+  </div>
 
   <button onclick="toggleBadgeTracker()">🏅 View Badge Tracker</button>
   <div id="badgeTracker"></div>

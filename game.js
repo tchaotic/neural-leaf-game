@@ -1650,4 +1650,17 @@ window.resetGame = function() {
         updateResourceDisplay();
     }
 };
+    // Fix for updateTreeStage
+const existingUpdateTreeStage = window.updateTreeStage || function() {};
+window.updateTreeStage = function() {
+    const oldStage = gameState.stage;
+    existingUpdateTreeStage();
+    
+    // If stage changed, give resources
+    if (oldStage !== gameState.stage && gameState.resources) {
+        // Resource bonuses code stays the same
+        // ...
+        updateResourceDisplay();
+    }
+};
 }

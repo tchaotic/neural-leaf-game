@@ -349,7 +349,6 @@ function addRandomEventStyles() {
  
     // Call your original initialization
     initializeGame();
-}
 
 / Replace your existing load event listener with this one
 window.addEventListener("load", function() {

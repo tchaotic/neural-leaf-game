@@ -663,4 +663,526 @@ function toggleBadgeTracker() {
         const currentDisplay = window.getComputedStyle(tracker).display;
         tracker.style.display = currentDisplay === "none" ? "block" : "none";
     }
+    // Achievement System - Add to game.js
+
+// Achievement definitions
+const achievements = [
+    {
+        id: "first_growth",
+        name: "First Step",
+        description: "Grow your AI tree for the first time",
+        icon: "🌱",
+        condition: () => gameState.growth >= 1,
+        reward: () => { gameState.growth += 1; return "Growth +1"; },
+        earned: false
+    },
+    {
+        id: "balanced_growth",
+        name: "Balanced Mind",
+        description: "Achieve at least 1 point in each focus area",
+        icon: "⚖️",
+        condition: () => Object.values(gameState.focusAreas).every(val => val >= 1),
+        reward: () => { 
+            Object.keys(gameState.focusAreas).forEach(area => gameState.focusAreas[area] += 1); 
+            return "All focus areas +1"; 
+        },
+        earned: false
+    },
+    {
+        id: "master_specialization",
+        name: "Master Specialist",
+        description: "Reach 5 points in any single focus area",
+        icon: "🏆",
+        condition: () => Object.values(gameState.focusAreas).some(val => val >= 5),
+        reward: () => {
+            const dominantPath = gameState.dominantPath;
+            if (dominantPath) {
+                gameState.focusAreas[dominantPath] += 2;
+                return `${dominantPath} focus +2`;
+            }
+            return "No reward applied";
+        },
+        earned: false
+    },
+    {
+        id: "random_master",
+        name: "Chaos Navigator",
+        description: "Experience 3 random events",
+        icon: "🎲",
+        condition: () => gameState.randomEventsExperienced >= 3,
+        reward: () => { gameState.growth += 2; return "Growth +2"; },
+        earned: false
+    },
+    {
+        id: "flowering",
+        name: "Fully Bloomed",
+        description: "Reach the flowering stage of development",
+        icon: "🌲",
+        condition: () => gameState.stage === "flowering",
+        reward: () => { 
+            // Add a special visual effect or property
+            gameState.specialEffects = gameState.specialEffects || {};
+            gameState.specialEffects.glowing = true;
+            return "Special visual effect: Glowing Tree";
+        },
+        earned: false
+    },
+    {
+        id: "badge_collector",
+        name: "Badge Collector",
+        description: "Earn all 5 focus area badges",
+        icon: "🏅",
+        condition: () => Object.values(gameState.badges).every(badge => badge === true),
+        reward: () => { 
+            gameState.growth += 3; 
+            return "Growth +3 and special status"; 
+        },
+        earned: false
+    },
+    {
+        id: "persistent_trainer",
+        name: "Persistent Trainer",
+        description: "Make 15 total growth choices",
+        icon: "🔄",
+        condition: () => gameState.growth >= 15,
+        reward: () => { 
+            // Unlock a special button or feature
+            gameState.unlockedFeatures = gameState.unlockedFeatures || {};
+            gameState.unlockedFeatures.rapidGrowth = true;
+            return "Unlocked: Rapid Growth feature";
+        },
+        earned: false
+    }
+];
+
+// Track achievements in game state
+function initializeAchievements() {
+    // Add achievements tracking to game state
+    gameState.achievements = gameState.achievements || {};
+    achievements.forEach(achievement => {
+        gameState.achievements[achievement.id] = gameState.achievements[achievement.id] || false;
+    });
+    
+    // Add random events counter if not present
+    gameState.randomEventsExperienced = gameState.randomEventsExperienced || 0;
+    
+    // Create achievements panel
+    createAchievementsPanel();
+}
+
+// Create achievements UI panel
+function createAchievementsPanel() {
+    // Check if panel already exists
+    if (document.getElementById("achievementsPanel")) return;
+    
+    // Create panel container
+    const panel = document.createElement("div");
+    panel.id = "achievementsPanel";
+    panel.style.display = "none";
+    panel.style.padding = "15px";
+    panel.style.backgroundColor = "#f5f5f5";
+    panel.style.border = "1px solid #ddd";
+    panel.style.borderRadius = "8px";
+    panel.style.marginTop = "20px";
+    panel.style.maxWidth = "600px";
+    panel.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+    
+    // Add header
+    const header = document.createElement("h3");
+    header.textContent = "Achievements";
+    header.style.borderBottom = "2px solid #4caf50";
+    header.style.paddingBottom = "10px";
+    header.style.marginBottom = "15px";
+    panel.appendChild(header);
+    
+    // Add achievements grid container
+    const grid = document.createElement("div");
+    grid.id = "achievementsGrid";
+    grid.style.display = "grid";
+    grid.style.gridTemplateColumns = "repeat(auto-fill, minmax(250px, 1fr))";
+    grid.style.gap = "15px";
+    panel.appendChild(grid);
+    
+    // Add panel to the game container
+    const container = document.querySelector(".container") || document.body;
+    container.appendChild(panel);
+    
+    // Add button to toggle achievements panel
+    const toggleButton = document.createElement("button");
+    toggleButton.textContent = "🏆 Achievements";
+    toggleButton.style.marginLeft = "10px";
+    toggleButton.style.padding = "8px 15px";
+    toggleButton.style.backgroundColor = "#9c27b0";
+    toggleButton.style.color = "white";
+    toggleButton.style.border = "none";
+    toggleButton.style.borderRadius = "4px";
+    toggleButton.style.cursor = "pointer";
+    toggleButton.onclick = toggleAchievements;
+    
+    // Add button next to the badge tracker button
+    const buttonContainer = document.querySelector("button").parentNode;
+    buttonContainer.appendChild(toggleButton);
+    
+    // Update the achievements display
+    updateAchievementsDisplay();
+}
+
+// Toggle achievements panel visibility
+function toggleAchievements() {
+    const panel = document.getElementById("achievementsPanel");
+    if (panel) {
+        const currentDisplay = window.getComputedStyle(panel).display;
+        panel.style.display = currentDisplay === "none" ? "block" : "none";
+    }
+}
+
+// Update achievements display
+function updateAchievementsDisplay() {
+    const grid = document.getElementById("achievementsGrid");
+    if (!grid) return;
+    
+    // Clear existing achievements
+    grid.innerHTML = "";
+    
+    // Add each achievement
+    achievements.forEach(achievement => {
+        const earned = gameState.achievements[achievement.id];
+        
+        const card = document.createElement("div");
+        card.className = "achievement-card";
+        card.style.padding = "10px";
+        card.style.border = "1px solid #ddd";
+        card.style.borderRadius = "5px";
+        card.style.backgroundColor = earned ? "#e8f5e9" : "#f5f5f5";
+        card.style.opacity = earned ? "1" : "0.7";
+        card.style.position = "relative";
+        
+        // Badge with icon
+        const badge = document.createElement("div");
+        badge.style.position = "absolute";
+        badge.style.right = "10px";
+        badge.style.top = "10px";
+        badge.style.fontSize = "24px";
+        badge.textContent = achievement.icon;
+        card.appendChild(badge);
+        
+        // Title
+        const title = document.createElement("h4");
+        title.textContent = achievement.name;
+        title.style.margin = "5px 0";
+        title.style.paddingRight = "30px"; // Make room for badge
+        card.appendChild(title);
+        
+        // Description
+        const desc = document.createElement("p");
+        desc.textContent = achievement.description;
+        desc.style.fontSize = "14px";
+        desc.style.margin = "5px 0 10px 0";
+        card.appendChild(desc);
+        
+        // Status
+        const status = document.createElement("div");
+        status.style.fontSize = "12px";
+        status.style.fontWeight = "bold";
+        status.style.color = earned ? "#4caf50" : "#999";
+        status.textContent = earned ? "ACHIEVED ✓" : "LOCKED";
+        card.appendChild(status);
+        
+        // Reward if earned
+        if (earned) {
+            const reward = document.createElement("div");
+            reward.style.fontSize = "12px";
+            reward.style.marginTop = "5px";
+            reward.style.color = "#9c27b0";
+            reward.textContent = `Reward: ${achievement.reward().toString()}`;
+            card.appendChild(reward);
+        }
+        
+        grid.appendChild(card);
+    });
+}
+
+// Check achievements after each growth action
+function checkAchievements() {
+    let newlyEarned = false;
+    
+    achievements.forEach(achievement => {
+        const id = achievement.id;
+        // Skip if already earned
+        if (gameState.achievements[id]) return;
+        
+        // Check if achievement condition is met
+        if (achievement.condition()) {
+            // Mark as earned
+            gameState.achievements[id] = true;
+            achievement.earned = true;
+            
+            // Apply reward
+            const rewardResult = achievement.reward();
+            
+            // Show notification
+            showAchievementNotification(achievement, rewardResult);
+            newlyEarned = true;
+        }
+    });
+    
+    // Update display if any achievements were earned
+    if (newlyEarned) {
+        updateAchievementsDisplay();
+    }
+}
+
+// Show achievement notification
+function showAchievementNotification(achievement, rewardText) {
+    // Create notification element
+    const notification = document.createElement("div");
+    notification.className = "achievement-notification";
+    notification.style.position = "fixed";
+    notification.style.top = "20px";
+    notification.style.right = "20px";
+    notification.style.backgroundColor = "#4caf50";
+    notification.style.color = "white";
+    notification.style.padding = "15px";
+    notification.style.borderRadius = "5px";
+    notification.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
+    notification.style.zIndex = "1000";
+    notification.style.display = "flex";
+    notification.style.alignItems = "center";
+    notification.style.maxWidth = "400px";
+    notification.style.transform = "translateX(120%)";
+    notification.style.transition = "transform 0.5s ease-out";
+    
+    // Icon
+    const icon = document.createElement("div");
+    icon.style.fontSize = "30px";
+    icon.style.marginRight = "15px";
+    icon.textContent = achievement.icon;
+    notification.appendChild(icon);
+    
+    // Text content
+    const content = document.createElement("div");
+    
+    const title = document.createElement("div");
+    title.style.fontWeight = "bold";
+    title.style.fontSize = "16px";
+    title.textContent = `Achievement Unlocked: ${achievement.name}`;
+    content.appendChild(title);
+    
+    const desc = document.createElement("div");
+    desc.style.fontSize = "14px";
+    desc.style.marginTop = "5px";
+    desc.textContent = achievement.description;
+    content.appendChild(desc);
+    
+    const reward = document.createElement("div");
+    reward.style.fontSize = "14px";
+    reward.style.marginTop = "5px";
+    reward.style.fontWeight = "bold";
+    reward.textContent = `Reward: ${rewardText}`;
+    content.appendChild(reward);
+    
+    notification.appendChild(content);
+    
+    // Add to document
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.style.transform = "translateX(0)";
+    }, 100);
+    
+    // Remove after delay
+    setTimeout(() => {
+        notification.style.transform = "translateX(120%)";
+        setTimeout(() => {
+            notification.remove();
+        }, 500);
+    }, 5000);
+}
+
+// Update random event handling to track events experienced
+function enhanceRandomEventHandling() {
+    // Store the original showEventModal function
+    const originalShowEventModal = showEventModal;
+    
+    // Override the showEventModal function to count events
+    window.showEventModal = function(event) {
+        // Increment event counter
+        gameState.randomEventsExperienced = (gameState.randomEventsExperienced || 0) + 1;
+        
+        // Call the original function
+        originalShowEventModal(event);
+        
+        // Check achievements after event
+        checkAchievements();
+    };
+}
+
+// Add special visual effects if unlocked
+function applySpecialEffects() {
+    if (!gameState.specialEffects) return;
+    
+    const tree = document.getElementById("tree");
+    if (!tree) return;
+    
+    // Apply glowing effect
+    if (gameState.specialEffects.glowing) {
+        tree.style.textShadow = "0 0 10px #ffeb3b, 0 0 15px #ffc107";
+    } else {
+        tree.style.textShadow = "";
+    }
+}
+
+// Add rapid growth feature if unlocked
+function addRapidGrowthFeature() {
+    if (!gameState.unlockedFeatures?.rapidGrowth) return;
+    
+    // Check if button already exists
+    if (document.getElementById("rapidGrowthBtn")) return;
+    
+    // Create rapid growth button
+    const rapidGrowthBtn = document.createElement("button");
+    rapidGrowthBtn.id = "rapidGrowthBtn";
+    rapidGrowthBtn.textContent = "🚀 Rapid Growth";
+    rapidGrowthBtn.style.marginTop = "15px";
+    rapidGrowthBtn.style.padding = "10px 20px";
+    rapidGrowthBtn.style.backgroundColor = "#ff9800";
+    rapidGrowthBtn.style.color = "white";
+    rapidGrowthBtn.style.border = "none";
+    rapidGrowthBtn.style.borderRadius = "5px";
+    rapidGrowthBtn.style.cursor = "pointer";
+    
+    // Add rapid growth functionality
+    rapidGrowthBtn.onclick = function() {
+        // Disable button temporarily (once per 30 seconds)
+        this.disabled = true;
+        this.style.opacity = "0.5";
+        setTimeout(() => {
+            this.disabled = false;
+            this.style.opacity = "1";
+        }, 30000);
+        
+        // Apply rapid growth (3 growth points)
+        for (let i = 0; i < 3; i++) {
+            // Find highest focus area
+            let highestArea = Object.keys(gameState.focusAreas)[0];
+            for (const area in gameState.focusAreas) {
+                if (gameState.focusAreas[area] > gameState.focusAreas[highestArea]) {
+                    highestArea = area;
+                }
+            }
+            
+            // Grow in that direction
+            growTree(highestArea);
+        }
+        
+        // Show feedback
+        const feedback = document.createElement("div");
+        feedback.textContent = "Rapid growth applied!";
+        feedback.style.color = "#ff9800";
+        feedback.style.fontWeight = "bold";
+        feedback.style.marginTop = "10px";
+        
+        this.parentNode.appendChild(feedback);
+        
+        setTimeout(() => {
+            feedback.remove();
+        }, 3000);
+    };
+    
+    // Add to the game container
+    const buttonContainer = document.querySelector("button").parentNode;
+    buttonContainer.appendChild(rapidGrowthBtn);
+}
+
+// Extend the growTree function to check achievements
+const originalGrowTree = growTree;
+window.growTree = function(choice) {
+    // Call original function
+    originalGrowTree(choice);
+    
+    // Check achievements
+    checkAchievements();
+    
+    // Apply special effects if any
+    applySpecialEffects();
+    
+    // Check if rapid growth feature should be added
+    addRapidGrowthFeature();
+};
+
+// Extend the resetGame function to reset achievements
+const originalResetGame = resetGame;
+window.resetGame = function() {
+    // Call original function
+    originalResetGame();
+    
+    // Reset achievements
+    achievements.forEach(achievement => {
+        gameState.achievements[achievement.id] = false;
+        achievement.earned = false;
+    });
+    
+    // Reset random events counter
+    gameState.randomEventsExperienced = 0;
+    
+    // Reset special effects
+    gameState.specialEffects = {};
+    
+    // Reset unlocked features
+    gameState.unlockedFeatures = {};
+    
+    // Update achievements display
+    updateAchievementsDisplay();
+};
+
+// Update the enhanced initialization function
+const originalEnhancedInitializeGame = enhancedInitializeGame;
+window.enhancedInitializeGame = function() {
+    // Call original function
+    originalEnhancedInitializeGame();
+    
+    // Initialize achievements system
+    initializeAchievements();
+    
+    // Enhance random event handling
+    enhanceRandomEventHandling();
+    
+    console.log("Achievement system initialized!");
+};
+
+// CSS for achievements
+function addAchievementStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .achievement-card {
+            transition: all 0.3s ease;
+        }
+        .achievement-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        #achievementsPanel {
+            transition: all 0.3s ease;
+        }
+        #rapidGrowthBtn:hover {
+            background-color: #f57c00 !important;
+        }
+        .achievement-notification {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Call this function when loading the page
+window.addEventListener("load", function() {
+    console.log("Achievement System Loaded!");
+    addAchievementStyles();
+});
 }

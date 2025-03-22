@@ -1185,7 +1185,8 @@ window.addEventListener("load", function() {
     console.log("Achievement System Loaded!");
     addAchievementStyles();
 });
-   // Resource Management System
+};
+// Resource Management System
 
 // Add resources to game state
 function initializeResources() {
@@ -1213,11 +1214,15 @@ function initializeResources() {
         reputation: 0 // Must be earned
     };
     
-    createResourcePanel();
+    // Wait for DOM to be ready before creating panel
+    setTimeout(createResourcePanel, 100);
 }
 
 // Create resource display panel
 function createResourcePanel() {
+    // Check if panel already exists
+    if (document.getElementById("resourcePanel")) return;
+    
     const panel = document.createElement("div");
     panel.id = "resourcePanel";
     panel.className = "game-panel";
@@ -1252,21 +1257,33 @@ function createResourcePanel() {
     const gatherDataBtn = document.createElement("button");
     gatherDataBtn.textContent = "Gather Data";
     gatherDataBtn.className = "resource-btn";
-    gatherDataBtn.onclick = gatherData;
+    gatherDataBtn.addEventListener("click", gatherData);
     buttonsDiv.appendChild(gatherDataBtn);
     
     // Create rest button (restore energy)
     const restBtn = document.createElement("button");
     restBtn.textContent = "Rest (Restore Energy)";
     restBtn.className = "resource-btn";
-    restBtn.onclick = restoreEnergy;
+    restBtn.addEventListener("click", restoreEnergy);
     buttonsDiv.appendChild(restBtn);
     
     panel.appendChild(buttonsDiv);
     
     // Insert panel at the top of the container
     const container = document.querySelector(".container");
-    container.insertBefore(panel, container.firstChild);
+    if (container) {
+        container.insertBefore(panel, container.firstChild);
+    } else {
+        // Fallback if container doesn't exist yet
+        document.body.appendChild(panel);
+        // Try again later
+        setTimeout(() => {
+            const container = document.querySelector(".container");
+            if (container && document.getElementById("resourcePanel")) {
+                container.insertBefore(document.getElementById("resourcePanel"), container.firstChild);
+            }
+        }, 500);
+    }
     
     // Add some basic CSS
     const style = document.createElement("style");
@@ -1353,14 +1370,28 @@ function updateResourceDisplay() {
 
 // Update resource gathering buttons
 function updateResourceButtons() {
-    const gatherDataBtn = document.querySelector("button:contains('Gather Data')");
-    if (gatherDataBtn) {
+    const gatherDataBtn = document.querySelector("button.resource-btn");
+    if (gatherDataBtn && gatherDataBtn.textContent.includes("Gather Data")) {
         // Disable if not enough energy
         gatherDataBtn.disabled = gameState.resources.energy < 2;
     }
     
     // Update focus area buttons to show costs
     updateFocusButtonCosts();
+}
+
+// Find buttons by text content
+function findButtonsByText(text) {
+    const allButtons = document.querySelectorAll("button");
+    const matchingButtons = [];
+    
+    for (const btn of allButtons) {
+        if (btn.textContent.toLowerCase().includes(text.toLowerCase())) {
+            matchingButtons.push(btn);
+        }
+    }
+    
+    return matchingButtons;
 }
 
 // Function to gather data
@@ -1431,49 +1462,29 @@ function showResourceFeedback(title, text, color) {
 
 // Modify focus buttons to show costs
 function updateFocusButtonCosts() {
-    // Get all focus area buttons
-    const focusButtons = document.querySelectorAll(".focus-btn");
+    const focusAreas = ["knowledge", "ethics", "data", "innovation", "collaboration"];
     
-    if (!focusButtons.length) {
-        // Buttons might not exist yet, find them by looking for buttons with specific text
-        const allButtons = document.querySelectorAll("button");
-        for (const btn of allButtons) {
-            const text = btn.textContent.toLowerCase();
-            if (text.includes("knowledge") || text.includes("ethics") || 
-                text.includes("data") || text.includes("innovation") || 
-                text.includes("collaboration")) {
-                
-                addCostToButton(btn);
+    // Find buttons matching focus areas
+    focusAreas.forEach(area => {
+        const buttons = findButtonsByText(area);
+        
+        // Apply to each button
+        buttons.forEach(btn => {
+            // Skip if it's the "Gather Data" button
+            if (area === "data" && btn.textContent.toLowerCase().includes("gather")) {
+                return;
             }
-        }
-    } else {
-        // Update existing focus buttons
-        focusButtons.forEach(btn => addCostToButton(btn));
-    }
+            
+            addCostToButton(btn, area);
+        });
+    });
 }
 
 // Add cost display to a focus button
-function addCostToButton(btn) {
-    // Extract focus area from button text
-    let focusArea = null;
-    const text = btn.textContent.toLowerCase();
-    
-    if (text.includes("knowledge")) focusArea = "knowledge";
-    else if (text.includes("ethics")) focusArea = "ethics";
-    else if (text.includes("data") && !text.includes("gather")) focusArea = "data";
-    else if (text.includes("innovation")) focusArea = "innovation";
-    else if (text.includes("collaboration")) focusArea = "collaboration";
-    
-    if (!focusArea) return;
-    
+function addCostToButton(btn, focusArea) {
     // Add class for easier selection later
     btn.classList.add("focus-btn");
     btn.dataset.focus = focusArea;
-    
-    // Store original onclick
-    if (!btn.dataset.originalOnclick) {
-        btn.dataset.originalOnclick = btn.onclick;
-    }
     
     // Format cost text
     const costs = gameState.costs[focusArea];
@@ -1487,6 +1498,48 @@ function addCostToButton(btn) {
         else if (resource === "reputation") icon = "⭐";
         
         costText += `${icon}${amount} `;
+    }
+    
+    // Store original onclick if not already stored
+    if (!btn.dataset.hasStoredClick) {
+        btn.dataset.hasStoredClick = "true";
+        
+        // Store the original onclick function if it exists
+        const originalOnclick = btn.onclick;
+        
+        // Replace onclick with resource-aware version
+        btn.onclick = function(event) {
+            if (checkResourceCost(focusArea)) {
+                // Deduct resources
+                for (const [resource, amount] of Object.entries(costs)) {
+                    gameState.resources[resource] -= amount;
+                }
+                
+                // Call original growth function - assuming growTree
+                if (typeof growTree === "function") {
+                    growTree(focusArea);
+                }
+                
+                // Add resources based on generation rates
+                for (const [resource, rate] of Object.entries(gameState.resourceGen)) {
+                    if (rate > 0) {
+                        gameState.resources[resource] += rate;
+                    }
+                }
+                
+                // Special resource rewards based on focus area
+                if (focusArea === "knowledge") gameState.resources.knowledge += 0.5;
+                else if (focusArea === "collaboration") gameState.resources.reputation += 0.5;
+                
+                // Call original onclick if it exists
+                if (originalOnclick) {
+                    originalOnclick.call(this, event);
+                }
+                
+                // Update display
+                updateResourceDisplay();
+            }
+        };
     }
     
     // Add cost indicator if not already present
@@ -1505,33 +1558,6 @@ function addCostToButton(btn) {
     // Check if player can afford this action
     const canAfford = checkResourceCost(focusArea);
     btn.disabled = !canAfford;
-    
-    // Replace onclick with resource-aware version
-    btn.onclick = function() {
-        if (checkResourceCost(focusArea)) {
-            // Deduct resources
-            for (const [resource, amount] of Object.entries(costs)) {
-                gameState.resources[resource] -= amount;
-            }
-            
-            // Call original growth function
-            growTree(focusArea);
-            
-            // Add resources based on generation rates
-            for (const [resource, rate] of Object.entries(gameState.resourceGen)) {
-                if (rate > 0) {
-                    gameState.resources[resource] += rate;
-                }
-            }
-            
-            // Special resource rewards based on focus area
-            if (focusArea === "knowledge") gameState.resources.knowledge += 0.5;
-            else if (focusArea === "collaboration") gameState.resources.reputation += 0.5;
-            
-            // Update display
-            updateResourceDisplay();
-        }
-    };
 }
 
 // Check if player can afford a focus action
@@ -1547,86 +1573,99 @@ function checkResourceCost(focusArea) {
     return true;
 }
 
-// Extend game initialization
-const originalEnhancedInitializeGame = enhancedInitializeGame || function() {};
-window.enhancedInitializeGame = function() {
-    originalEnhancedInitializeGame();
-    initializeResources();
-};
+// Safely extend the game initialization
+(function() {
+    // Store the original function
+    const originalInitializeGame = window.enhancedInitializeGame || function() {};
+    
+    // Replace with our version
+    window.enhancedInitializeGame = function() {
+        // Call the original
+        originalInitializeGame();
+        // Then add our resources
+        initializeResources();
+    };
+    
+    // If the game is already initialized, initialize resources now
+    if (typeof gameState !== 'undefined') {
+        initializeResources();
+    }
+})();
 
-// Handle jQuery-like selector
-if (!document.querySelectorAll("button:contains('Gather Data')").length) {
-    // Define a contains selector for non-jQuery environments
-    document.querySelectorAll = function(selector) {
-        if (selector.includes(":contains")) {
-            const containsText = selector.match(/:contains\('([^']+)'\)/)[1];
-            const elemType = selector.split(":")[0];
-            
-            const allElements = document.getElementsByTagName(elemType);
-            const result = [];
-            
-            for (let i = 0; i < allElements.length; i++) {
-                if (allElements[i].textContent.includes(containsText)) {
-                    result.push(allElements[i]);
-                }
+// Safely extend the tree stage update function
+(function() {
+    // Store the original function
+    const originalUpdateTreeStage = window.updateTreeStage || function() {};
+    
+    // Replace with our version
+    window.updateTreeStage = function() {
+        const oldStage = gameState.stage;
+        // Call the original
+        originalUpdateTreeStage();
+        
+        // If stage changed, give resources
+        if (oldStage !== gameState.stage && gameState.resources) {
+            // Give bonuses for advancing stages
+            if (gameState.stage === "sprout") {
+                gameState.resources.maxEnergy += 5;
+                gameState.resources.energy += 5;
+                showResourceFeedback("Stage Bonus", "+5 Max Energy!", "#4caf50");
+            } else if (gameState.stage === "sapling") {
+                gameState.resources.knowledge += 2;
+                gameState.resources.data += 5;
+                showResourceFeedback("Stage Bonus", "+2 Knowledge, +5 Data!", "#4caf50");
+            } else if (gameState.stage === "mature") {
+                gameState.resources.reputation += 3;
+                gameState.resources.maxEnergy += 5;
+                gameState.resources.energy += 5;
+                showResourceFeedback("Stage Bonus", "+3 Reputation, +5 Max Energy!", "#4caf50");
+            } else if (gameState.stage === "flowering") {
+                // Big bonus for reaching final stage
+                gameState.resources.knowledge += 3;
+                gameState.resources.data += 10;
+                gameState.resources.reputation += 5;
+                showResourceFeedback("Final Stage Bonus!", "+3 Knowledge, +10 Data, +5 Reputation!", "#ff9800");
             }
             
-            return result;
-        } else {
-            return document.querySelectorAll(selector);
+            updateResourceDisplay();
         }
     };
-}
+})();
 
-// When game stage changes, give resources
-const originalUpdateTreeStage = updateTreeStage;
-window.updateTreeStage = function() {
-    const oldStage = gameState.stage;
-    originalUpdateTreeStage();
+// Safely extend the reset game function
+(function() {
+    // Store the original function
+    const originalResetGame = window.resetGame || function() {};
     
-    // If stage changed, give resources
-    if (oldStage !== gameState.stage && gameState.resources) {
-        // Give bonuses for advancing stages
-        if (gameState.stage === "sprout") {
-            gameState.resources.maxEnergy += 5;
-            gameState.resources.energy += 5;
-            showResourceFeedback("Stage Bonus", "+5 Max Energy!", "#4caf50");
-        } else if (gameState.stage === "sapling") {
-            gameState.resources.knowledge += 2;
-            gameState.resources.data += 5;
-            showResourceFeedback("Stage Bonus", "+2 Knowledge, +5 Data!", "#4caf50");
-        } else if (gameState.stage === "mature") {
-            gameState.resources.reputation += 3;
-            gameState.resources.maxEnergy += 5;
-            gameState.resources.energy += 5;
-            showResourceFeedback("Stage Bonus", "+3 Reputation, +5 Max Energy!", "#4caf50");
-        } else if (gameState.stage === "flowering") {
-            // Big bonus for reaching final stage
-            gameState.resources.knowledge += 3;
-            gameState.resources.data += 10;
-            gameState.resources.reputation += 5;
-            showResourceFeedback("Final Stage Bonus!", "+3 Knowledge, +10 Data, +5 Reputation!", "#ff9800");
+    // Replace with our version
+    window.resetGame = function() {
+        // Call the original
+        originalResetGame();
+        
+        // Reset resources
+        if (gameState && gameState.resources) {
+            gameState.resources = {
+                energy: 10,
+                data: 5,
+                knowledge: 3,
+                reputation: 0,
+                maxEnergy: 15
+            };
+            updateResourceDisplay();
+        }
+    };
+})();
+
+// Run a periodic update to handle any timing issues
+setInterval(function() {
+    if (gameState && gameState.resources) {
+        // If resource panel doesn't exist, create it
+        if (!document.getElementById("resourcePanel")) {
+            createResourcePanel();
         }
         
-        updateResourceDisplay();
+        // Update focus buttons with costs
+        updateFocusButtonCosts();
     }
-};
-
-// Reset resources when game resets
-const originalResetGame = resetGame;
-window.resetGame = function() {
-    originalResetGame();
-    
-    // Reset resources
-    if (gameState.resources) {
-        gameState.resources = {
-            energy: 10,
-            data: 5,
-            knowledge: 3,
-            reputation: 0,
-            maxEnergy: 15
-        };
-        updateResourceDisplay();
-    }
-};
+}, 1000);
 }

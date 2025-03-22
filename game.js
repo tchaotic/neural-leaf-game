@@ -2,6 +2,18 @@ window.addEventListener("load", function () {
     setTimeout(() => {
         console.log("Neural Leaf Game Script Loaded!");
 
+        // ✅ Add these event listeners here
+        document.getElementById("btnKnowledge").addEventListener("click", () => growTree("knowledge"));
+        document.getElementById("btnEthics").addEventListener("click", () => growTree("ethics"));
+        document.getElementById("btnData").addEventListener("click", () => growTree("data"));
+        document.getElementById("btnInnovation").addEventListener("click", () => growTree("innovation"));
+        document.getElementById("btnCollab").addEventListener("click", () => growTree("collaboration"));
+        document.getElementById("resetBtn").addEventListener("click", resetGame);
+        document.getElementById("finishBtn").addEventListener("click", finishGame);
+
+        // Then define growTree(), resetGame(), etc.
+
+
         let stage = 0;
         const stages = ["🌱", "🌿", "🌾", "🌲", "🌳", "🌳✨", "🌳🤖", "🌳🌟"];
         const messages = [

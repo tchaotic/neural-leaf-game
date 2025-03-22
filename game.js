@@ -332,8 +332,7 @@ function showEventModal(event) {
     // Update tree appearance based on growth level and dominant path
     updateTreeStage();
     
-    // Rest of your existing function...
-}
+   // Rest of your existing function...
 
 // Add CSS for the modal
 function addRandomEventStyles() {

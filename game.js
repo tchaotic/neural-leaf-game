@@ -1185,482 +1185,493 @@ window.addEventListener("load", function() {
     console.log("Achievement System Loaded!");
     addAchievementStyles();
 });
-   // Resource Management System
+ // Resource Management System - Fixed Implementation
+(function() {
+    // Check if already initialized to prevent duplicate execution
+    if (window.resourceSystemInitialized) return;
+    window.resourceSystemInitialized = true;
+    
+    // Initialize resources
+    function initializeResources() {
+        if (!window.gameState) window.gameState = {};
+        
+        window.gameState.resources = {
+            energy: 10,
+            data: 5,
+            knowledge: 3,
+            reputation: 0,
+            maxEnergy: 15
+        };
+        
+        window.gameState.costs = {
+            knowledge: { energy: 2, data: 1 },
+            ethics: { energy: 3, reputation: 1 },
+            data: { energy: 1, data: 2 },
+            innovation: { energy: 4, knowledge: 1 },
+            collaboration: { energy: 2, reputation: 2 }
+        };
+        
+        // Resource generation rates (per action)
+        window.gameState.resourceGen = {
+            energy: 1,    // Regenerates 1 per turn
+            data: 0.5,    // Generates 0.5 per turn
+            knowledge: 0, // Must be earned
+            reputation: 0 // Must be earned
+        };
+        
+        createResourcePanel();
+        console.log("Resources initialized");
+    }
 
-// Add resources to game state
-function initializeResources() {
-    gameState.resources = {
-        energy: 10,
-        data: 5,
-        knowledge: 3,
-        reputation: 0,
-        maxEnergy: 15
-    };
-    
-    gameState.costs = {
-        knowledge: { energy: 2, data: 1 },
-        ethics: { energy: 3, reputation: 1 },
-        data: { energy: 1, data: 2 },
-        innovation: { energy: 4, knowledge: 1 },
-        collaboration: { energy: 2, reputation: 2 }
-    };
-    
-    // Resource generation rates (per action)
-    gameState.resourceGen = {
-        energy: 1,    // Regenerates 1 per turn
-        data: 0.5,    // Generates 0.5 per turn
-        knowledge: 0, // Must be earned
-        reputation: 0 // Must be earned
-    };
-    
-    createResourcePanel();
-}
-
-// Create resource display panel
-function createResourcePanel() {
-    const panel = document.createElement("div");
-    panel.id = "resourcePanel";
-    panel.className = "game-panel";
-    panel.style.padding = "15px";
-    panel.style.backgroundColor = "#eef5ff";
-    panel.style.border = "1px solid #ccc";
-    panel.style.borderRadius = "8px";
-    panel.style.marginBottom = "15px";
-    
-    // Add title
-    const title = document.createElement("h3");
-    title.textContent = "Resources";
-    title.style.marginTop = "0";
-    title.style.marginBottom = "10px";
-    panel.appendChild(title);
-    
-    // Create resource display
-    const resourceGrid = document.createElement("div");
-    resourceGrid.id = "resourceGrid";
-    resourceGrid.style.display = "grid";
-    resourceGrid.style.gridTemplateColumns = "repeat(2, 1fr)";
-    resourceGrid.style.gap = "10px";
-    panel.appendChild(resourceGrid);
-    
-    // Add resource gathering buttons
-    const buttonsDiv = document.createElement("div");
-    buttonsDiv.style.marginTop = "15px";
-    buttonsDiv.style.display = "flex";
-    buttonsDiv.style.gap = "10px";
-    
-    // Create gather data button
-    const gatherDataBtn = document.createElement("button");
-    gatherDataBtn.textContent = "Gather Data";
-    gatherDataBtn.className = "resource-btn";
-    gatherDataBtn.onclick = gatherData;
-    buttonsDiv.appendChild(gatherDataBtn);
-    
-    // Create rest button (restore energy)
-    const restBtn = document.createElement("button");
-    restBtn.textContent = "Rest (Restore Energy)";
-    restBtn.className = "resource-btn";
-    restBtn.onclick = restoreEnergy;
-    buttonsDiv.appendChild(restBtn);
-    
-    panel.appendChild(buttonsDiv);
-    
-    // Insert panel at the top of the container
-    const container = document.querySelector(".container");
-    container.insertBefore(panel, container.firstChild);
-    
-    // Add some basic CSS
-    const style = document.createElement("style");
-    style.textContent = `
-        .resource-btn {
-            padding: 8px 12px;
-            background-color: #2196f3;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .resource-btn:hover {
-            background-color: #0b7dda;
-        }
-        .resource-btn:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-        .resource-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .resource-icon {
-            font-size: 18px;
-            width: 24px;
-            text-align: center;
-        }
-    `;
-    document.head.appendChild(style);
-    
-    // Initial update
-    updateResourceDisplay();
-}
-
-// Update resource display
-function updateResourceDisplay() {
-    const grid = document.getElementById("resourceGrid");
-    if (!grid) return;
-    
-    grid.innerHTML = "";
-    
-    // Resource icons and colors
-    const resourceIcons = {
-        energy: { icon: "⚡", color: "#ffc107" },
-        data: { icon: "📊", color: "#2196f3" },
-        knowledge: { icon: "📚", color: "#4caf50" },
-        reputation: { icon: "⭐", color: "#9c27b0" }
-    };
-    
-    // Create display for each resource
-    for (const [resource, amount] of Object.entries(gameState.resources)) {
-        if (resource === "maxEnergy") continue; // Skip max values
+    // Create resource display panel
+    function createResourcePanel() {
+        // Remove existing panel if it exists
+        const existingPanel = document.getElementById("resourcePanel");
+        if (existingPanel) existingPanel.remove();
         
-        const resourceItem = document.createElement("div");
-        resourceItem.className = "resource-item";
+        const panel = document.createElement("div");
+        panel.id = "resourcePanel";
+        panel.className = "game-panel";
+        panel.style.padding = "15px";
+        panel.style.backgroundColor = "#eef5ff";
+        panel.style.border = "1px solid #ccc";
+        panel.style.borderRadius = "8px";
+        panel.style.marginBottom = "15px";
         
-        // Icon
-        const icon = document.createElement("span");
-        icon.className = "resource-icon";
-        icon.textContent = resourceIcons[resource].icon;
-        icon.style.color = resourceIcons[resource].color;
-        resourceItem.appendChild(icon);
+        // Add title
+        const title = document.createElement("h3");
+        title.textContent = "Resources";
+        title.style.marginTop = "0";
+        title.style.marginBottom = "10px";
+        panel.appendChild(title);
         
-        // Name and value
-        const nameValue = document.createElement("span");
-        let displayValue = Math.floor(amount * 10) / 10; // Round to 1 decimal
+        // Create resource display
+        const resourceGrid = document.createElement("div");
+        resourceGrid.id = "resourceGrid";
+        resourceGrid.style.display = "grid";
+        resourceGrid.style.gridTemplateColumns = "repeat(2, 1fr)";
+        resourceGrid.style.gap = "10px";
+        panel.appendChild(resourceGrid);
         
-        // Special display for energy to show current/max
-        if (resource === "energy") {
-            nameValue.textContent = `${resource.charAt(0).toUpperCase() + resource.slice(1)}: ${displayValue}/${gameState.resources.maxEnergy}`;
+        // Add resource gathering buttons
+        const buttonsDiv = document.createElement("div");
+        buttonsDiv.style.marginTop = "15px";
+        buttonsDiv.style.display = "flex";
+        buttonsDiv.style.gap = "10px";
+        
+        // Create gather data button
+        const gatherDataBtn = document.createElement("button");
+        gatherDataBtn.textContent = "Gather Data";
+        gatherDataBtn.className = "resource-btn";
+        gatherDataBtn.onclick = gatherData;
+        buttonsDiv.appendChild(gatherDataBtn);
+        
+        // Create rest button (restore energy)
+        const restBtn = document.createElement("button");
+        restBtn.textContent = "Rest (Restore Energy)";
+        restBtn.className = "resource-btn";
+        restBtn.onclick = restoreEnergy;
+        buttonsDiv.appendChild(restBtn);
+        
+        panel.appendChild(buttonsDiv);
+        
+        // Insert panel at the top of the container
+        const container = document.querySelector(".container");
+        if (container) {
+            container.insertBefore(panel, container.firstChild);
         } else {
-            nameValue.textContent = `${resource.charAt(0).toUpperCase() + resource.slice(1)}: ${displayValue}`;
+            // Fallback - append to body
+            document.body.appendChild(panel);
         }
-        resourceItem.appendChild(nameValue);
         
-        grid.appendChild(resourceItem);
+        // Add CSS
+        const styleId = "resource-management-style";
+        if (!document.getElementById(styleId)) {
+            const style = document.createElement("style");
+            style.id = styleId;
+            style.textContent = `
+                .resource-btn {
+                    padding: 8px 12px;
+                    background-color: #2196f3;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                }
+                .resource-btn:hover {
+                    background-color: #0b7dda;
+                }
+                .resource-btn:disabled {
+                    background-color: #cccccc;
+                    cursor: not-allowed;
+                }
+                .resource-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                }
+                .resource-icon {
+                    font-size: 18px;
+                    width: 24px;
+                    text-align: center;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Initial update
+        updateResourceDisplay();
     }
-    
-    // Update button states based on resources
-    updateResourceButtons();
-}
 
-// Update resource gathering buttons
-function updateResourceButtons() {
-    const gatherDataBtn = document.querySelector("button:contains('Gather Data')");
-    if (gatherDataBtn) {
-        // Disable if not enough energy
-        gatherDataBtn.disabled = gameState.resources.energy < 2;
+    // Update resource display
+    function updateResourceDisplay() {
+        const grid = document.getElementById("resourceGrid");
+        if (!grid) return;
+        
+        grid.innerHTML = "";
+        
+        // Resource icons and colors
+        const resourceIcons = {
+            energy: { icon: "⚡", color: "#ffc107" },
+            data: { icon: "📊", color: "#2196f3" },
+            knowledge: { icon: "📚", color: "#4caf50" },
+            reputation: { icon: "⭐", color: "#9c27b0" }
+        };
+        
+        // Create display for each resource
+        for (const [resource, amount] of Object.entries(window.gameState.resources)) {
+            if (resource === "maxEnergy") continue;
+            
+            const resourceItem = document.createElement("div");
+            resourceItem.className = "resource-item";
+            
+            // Icon
+            const icon = document.createElement("span");
+            icon.className = "resource-icon";
+            icon.textContent = resourceIcons[resource].icon;
+            icon.style.color = resourceIcons[resource].color;
+            resourceItem.appendChild(icon);
+            
+            // Name and value
+            const nameValue = document.createElement("span");
+            let displayValue = Math.floor(amount * 10) / 10; // Round to 1 decimal
+            
+            // Special display for energy to show current/max
+            if (resource === "energy") {
+                nameValue.textContent = `${resource.charAt(0).toUpperCase() + resource.slice(1)}: ${displayValue}/${window.gameState.resources.maxEnergy}`;
+            } else {
+                nameValue.textContent = `${resource.charAt(0).toUpperCase() + resource.slice(1)}: ${displayValue}`;
+            }
+            resourceItem.appendChild(nameValue);
+            
+            grid.appendChild(resourceItem);
+        }
+        
+        // Update button states
+        updateResourceButtons();
     }
-    
-    // Update focus area buttons to show costs
-    updateFocusButtonCosts();
-}
 
-// Function to gather data
-function gatherData() {
-    if (gameState.resources.energy >= 2) {
-        gameState.resources.energy -= 2;
-        gameState.resources.data += 3;
+    // Function to gather data
+    function gatherData() {
+        if (window.gameState.resources.energy >= 2) {
+            window.gameState.resources.energy -= 2;
+            window.gameState.resources.data += 3;
+            
+            // Show feedback
+            showResourceFeedback("Gathered 3 Data", "+3 📊", "#2196f3");
+            
+            updateResourceDisplay();
+        }
+    }
+
+    // Function to rest and restore energy
+    function restoreEnergy() {
+        const energyGain = Math.min(
+            5, 
+            window.gameState.resources.maxEnergy - window.gameState.resources.energy
+        );
+        window.gameState.resources.energy = Math.min(
+            window.gameState.resources.energy + energyGain,
+            window.gameState.resources.maxEnergy
+        );
         
         // Show feedback
-        showResourceFeedback("Gathered 3 Data", "+3 📊", "#2196f3");
+        showResourceFeedback("Rested", `+${energyGain} ⚡`, "#ffc107");
         
         updateResourceDisplay();
     }
-}
 
-// Function to rest and restore energy
-function restoreEnergy() {
-    const energyGain = Math.min(
-        5, 
-        gameState.resources.maxEnergy - gameState.resources.energy
-    );
-    gameState.resources.energy = Math.min(
-        gameState.resources.energy + energyGain,
-        gameState.resources.maxEnergy
-    );
-    
-    // Show feedback
-    showResourceFeedback("Rested", `+${energyGain} ⚡`, "#ffc107");
-    
-    updateResourceDisplay();
-}
-
-// Show resource feedback
-function showResourceFeedback(title, text, color) {
-    const feedback = document.createElement("div");
-    feedback.className = "resource-feedback";
-    feedback.style.position = "fixed";
-    feedback.style.top = "20px";
-    feedback.style.left = "50%";
-    feedback.style.transform = "translateX(-50%) translateY(0)";
-    feedback.style.backgroundColor = color;
-    feedback.style.color = "white";
-    feedback.style.padding = "10px 20px";
-    feedback.style.borderRadius = "20px";
-    feedback.style.fontWeight = "bold";
-    feedback.style.boxShadow = "0 3px 6px rgba(0,0,0,0.2)";
-    feedback.style.zIndex = "1000";
-    feedback.style.opacity = "0";
-    feedback.style.transition = "all 0.3s ease";
-    
-    feedback.innerHTML = `${title}: <span style="font-size:16px;">${text}</span>`;
-    
-    document.body.appendChild(feedback);
-    
-    // Animate in
-    setTimeout(() => {
-        feedback.style.opacity = "1";
-        feedback.style.transform = "translateX(-50%) translateY(10px)";
-    }, 10);
-    
-    // Animate out
-    setTimeout(() => {
+    // Show resource feedback
+    function showResourceFeedback(title, text, color) {
+        const feedback = document.createElement("div");
+        feedback.className = "resource-feedback";
+        feedback.style.position = "fixed";
+        feedback.style.top = "20px";
+        feedback.style.left = "50%";
+        feedback.style.transform = "translateX(-50%) translateY(0)";
+        feedback.style.backgroundColor = color;
+        feedback.style.color = "white";
+        feedback.style.padding = "10px 20px";
+        feedback.style.borderRadius = "20px";
+        feedback.style.fontWeight = "bold";
+        feedback.style.boxShadow = "0 3px 6px rgba(0,0,0,0.2)";
+        feedback.style.zIndex = "1000";
         feedback.style.opacity = "0";
-        feedback.style.transform = "translateX(-50%) translateY(-20px)";
-        setTimeout(() => feedback.remove(), 300);
-    }, 2000);
-}
+        feedback.style.transition = "all 0.3s ease";
+        
+        feedback.innerHTML = `${title}: <span style="font-size:16px;">${text}</span>`;
+        
+        document.body.appendChild(feedback);
+        
+        // Animate in
+        setTimeout(() => {
+            feedback.style.opacity = "1";
+            feedback.style.transform = "translateX(-50%) translateY(10px)";
+        }, 10);
+        
+        // Animate out
+        setTimeout(() => {
+            feedback.style.opacity = "0";
+            feedback.style.transform = "translateX(-50%) translateY(-20px)";
+            setTimeout(() => feedback.remove(), 300);
+        }, 2000);
+    }
 
-// Modify focus buttons to show costs
-function updateFocusButtonCosts() {
-    // Get all focus area buttons
-    const focusButtons = document.querySelectorAll(".focus-btn");
-    
-    if (!focusButtons.length) {
-        // Buttons might not exist yet, find them by looking for buttons with specific text
-        const allButtons = document.querySelectorAll("button");
+    // Update resource buttons
+    function updateResourceButtons() {
+        // Gather Data button
+        const gatherDataBtn = document.querySelector("button.resource-btn");
+        if (gatherDataBtn && gatherDataBtn.textContent.includes("Gather Data")) {
+            gatherDataBtn.disabled = window.gameState.resources.energy < 2;
+        }
+        
+        // Find and update focus buttons
+        findAndUpdateFocusButtons();
+    }
+
+    // Find buttons by text content
+    function findAndUpdateFocusButtons() {
+        // Find all buttons in the document
+        const allButtons = document.querySelectorAll("button:not(.resource-btn)");
+        
         for (const btn of allButtons) {
             const text = btn.textContent.toLowerCase();
+            // Check for focus area buttons
             if (text.includes("knowledge") || text.includes("ethics") || 
                 text.includes("data") || text.includes("innovation") || 
                 text.includes("collaboration")) {
                 
-                addCostToButton(btn);
+                if (!btn.classList.contains("focus-btn-processed")) {
+                    addCostToButton(btn);
+                    btn.classList.add("focus-btn-processed");
+                }
             }
         }
-    } else {
-        // Update existing focus buttons
-        focusButtons.forEach(btn => addCostToButton(btn));
     }
-}
 
-// Add cost display to a focus button
-function addCostToButton(btn) {
-    // Extract focus area from button text
-    let focusArea = null;
-    const text = btn.textContent.toLowerCase();
-    
-    if (text.includes("knowledge")) focusArea = "knowledge";
-    else if (text.includes("ethics")) focusArea = "ethics";
-    else if (text.includes("data") && !text.includes("gather")) focusArea = "data";
-    else if (text.includes("innovation")) focusArea = "innovation";
-    else if (text.includes("collaboration")) focusArea = "collaboration";
-    
-    if (!focusArea) return;
-    
-    // Add class for easier selection later
-    btn.classList.add("focus-btn");
-    btn.dataset.focus = focusArea;
-    
-    // Store original onclick
-    if (!btn.dataset.originalOnclick) {
-        btn.dataset.originalOnclick = btn.onclick;
-    }
-    
-    // Format cost text
-    const costs = gameState.costs[focusArea];
-    let costText = "";
-    
-    for (const [resource, amount] of Object.entries(costs)) {
-        let icon = "";
-        if (resource === "energy") icon = "⚡";
-        else if (resource === "data") icon = "📊";
-        else if (resource === "knowledge") icon = "📚";
-        else if (resource === "reputation") icon = "⭐";
+    // Add cost to button
+    function addCostToButton(btn) {
+        // Extract focus area from button text
+        let focusArea = null;
+        const text = btn.textContent.toLowerCase();
         
-        costText += `${icon}${amount} `;
-    }
-    
-    // Add cost indicator if not already present
-    if (!btn.querySelector(".cost-indicator")) {
-        const costSpan = document.createElement("span");
-        costSpan.className = "cost-indicator";
-        costSpan.textContent = costText;
-        costSpan.style.fontSize = "12px";
-        costSpan.style.display = "block";
-        costSpan.style.marginTop = "3px";
-        btn.appendChild(costSpan);
-    } else {
-        btn.querySelector(".cost-indicator").textContent = costText;
-    }
-    
-    // Check if player can afford this action
-    const canAfford = checkResourceCost(focusArea);
-    btn.disabled = !canAfford;
-    
-    // Replace onclick with resource-aware version
-    btn.onclick = function() {
-        if (checkResourceCost(focusArea)) {
-            // Deduct resources
+        if (text.includes("knowledge")) focusArea = "knowledge";
+        else if (text.includes("ethics")) focusArea = "ethics";
+        else if (text.includes("data") && !text.includes("gather")) focusArea = "data";
+        else if (text.includes("innovation")) focusArea = "innovation";
+        else if (text.includes("collaboration")) focusArea = "collaboration";
+        
+        if (!focusArea || !window.gameState.costs[focusArea]) return;
+        
+        // Add class for identification
+        btn.classList.add("focus-btn");
+        btn.dataset.focus = focusArea;
+        
+        // Save original click handler
+        if (!btn.dataset.handlerApplied) {
+            const originalOnclick = btn.onclick;
+            
+            // Format cost text
+            const costs = window.gameState.costs[focusArea];
+            let costText = "";
+            
             for (const [resource, amount] of Object.entries(costs)) {
-                gameState.resources[resource] -= amount;
+                let icon = "";
+                if (resource === "energy") icon = "⚡";
+                else if (resource === "data") icon = "📊";
+                else if (resource === "knowledge") icon = "📚";
+                else if (resource === "reputation") icon = "⭐";
+                
+                costText += `${icon}${amount} `;
             }
             
-            // Call original growth function
-            growTree(focusArea);
+            // Add cost indicator
+            let costSpan = btn.querySelector(".cost-indicator");
+            if (!costSpan) {
+                costSpan = document.createElement("span");
+                costSpan.className = "cost-indicator";
+                costSpan.style.fontSize = "12px";
+                costSpan.style.display = "block";
+                costSpan.style.marginTop = "3px";
+                btn.appendChild(costSpan);
+            }
+            costSpan.textContent = costText;
             
-            // Add resources based on generation rates
-            for (const [resource, rate] of Object.entries(gameState.resourceGen)) {
-                if (rate > 0) {
-                    gameState.resources[resource] += rate;
+            // Replace onclick with resource-aware version
+            btn.onclick = function(e) {
+                if (checkResourceCost(focusArea)) {
+                    // Deduct resources
+                    for (const [resource, amount] of Object.entries(costs)) {
+                        window.gameState.resources[resource] -= amount;
+                    }
+                    
+                    // Call original handler if it exists
+                    if (originalOnclick) {
+                        originalOnclick.call(this, e);
+                    }
+                    
+                    // Resource generation
+                    for (const [resource, rate] of Object.entries(window.gameState.resourceGen)) {
+                        if (rate > 0) {
+                            window.gameState.resources[resource] += rate;
+                        }
+                    }
+                    
+                    // Special rewards
+                    if (focusArea === "knowledge") window.gameState.resources.knowledge += 0.5;
+                    else if (focusArea === "collaboration") window.gameState.resources.reputation += 0.5;
+                    
+                    updateResourceDisplay();
                 }
-            }
+            };
             
-            // Special resource rewards based on focus area
-            if (focusArea === "knowledge") gameState.resources.knowledge += 0.5;
-            else if (focusArea === "collaboration") gameState.resources.reputation += 0.5;
-            
-            // Update display
-            updateResourceDisplay();
-        }
-    };
-}
-
-// Check if player can afford a focus action
-function checkResourceCost(focusArea) {
-    const costs = gameState.costs[focusArea];
-    
-    for (const [resource, amount] of Object.entries(costs)) {
-        if (gameState.resources[resource] < amount) {
-            return false;
-        }
-    }
-    
-    return true;
-}
-
-// Extend game initialization
-// With this safer approach that doesn't redeclare
-const existingInitializeGame = window.enhancedInitializeGame || function() {};
-window.enhancedInitializeGame = function() {
-    existingInitializeGame();
-    initializeResources();
-};
-window.enhancedInitializeGame = function() {
-    originalEnhancedInitializeGame();
-    initializeResources();
-};
-
-// Handle jQuery-like selector
-if (!document.querySelectorAll("button:contains('Gather Data')").length) {
-    // Define a contains selector for non-jQuery environments
-    document.querySelectorAll = function(selector) {
-        if (selector.includes(":contains")) {
-            const containsText = selector.match(/:contains\('([^']+)'\)/)[1];
-            const elemType = selector.split(":")[0];
-            
-            const allElements = document.getElementsByTagName(elemType);
-            const result = [];
-            
-            for (let i = 0; i < allElements.length; i++) {
-                if (allElements[i].textContent.includes(containsText)) {
-                    result.push(allElements[i]);
-                }
-            }
-            
-            return result;
-        } else {
-            return document.querySelectorAll(selector);
-        }
-    };
-}
-
-// When game stage changes, give resources
-const originalUpdateTreeStage = updateTreeStage;
-window.updateTreeStage = function() {
-    const oldStage = gameState.stage;
-    originalUpdateTreeStage();
-    
-    // If stage changed, give resources
-    if (oldStage !== gameState.stage && gameState.resources) {
-        // Give bonuses for advancing stages
-        if (gameState.stage === "sprout") {
-            gameState.resources.maxEnergy += 5;
-            gameState.resources.energy += 5;
-            showResourceFeedback("Stage Bonus", "+5 Max Energy!", "#4caf50");
-        } else if (gameState.stage === "sapling") {
-            gameState.resources.knowledge += 2;
-            gameState.resources.data += 5;
-            showResourceFeedback("Stage Bonus", "+2 Knowledge, +5 Data!", "#4caf50");
-        } else if (gameState.stage === "mature") {
-            gameState.resources.reputation += 3;
-            gameState.resources.maxEnergy += 5;
-            gameState.resources.energy += 5;
-            showResourceFeedback("Stage Bonus", "+3 Reputation, +5 Max Energy!", "#4caf50");
-        } else if (gameState.stage === "flowering") {
-            // Big bonus for reaching final stage
-            gameState.resources.knowledge += 3;
-            gameState.resources.data += 10;
-            gameState.resources.reputation += 5;
-            showResourceFeedback("Final Stage Bonus!", "+3 Knowledge, +10 Data, +5 Reputation!", "#ff9800");
+            btn.dataset.handlerApplied = "true";
         }
         
-        updateResourceDisplay();
+        // Update disabled state
+        btn.disabled = !checkResourceCost(focusArea);
     }
-};
 
-// Reset resources when game resets
-// With this safer approach
-const existingResetGame = window.resetGame || function() {};
-window.resetGame = function() {
-    existingResetGame();
-    
-    // Reset resources
-    if (gameState.resources) {
-        gameState.resources = {
-            energy: 10,
-            data: 5,
-            knowledge: 3,
-            reputation: 0,
-            maxEnergy: 15
-        };
-        updateResourceDisplay();
+    // Check if enough resources
+    function checkResourceCost(focusArea) {
+        const costs = window.gameState.costs[focusArea];
+        
+        for (const [resource, amount] of Object.entries(costs)) {
+            if (window.gameState.resources[resource] < amount) {
+                return false;
+            }
+        }
+        
+        return true;
     }
-};
-window.resetGame = function() {
-    originalResetGame();
-    
-    // Reset resources
-    if (gameState.resources) {
-        gameState.resources = {
-            energy: 10,
-            data: 5,
-            knowledge: 3,
-            reputation: 0,
-            maxEnergy: 15
-        };
-        updateResourceDisplay();
+
+    // Hook into game events
+    function setupGameHooks() {
+        // Watch for stage changes
+        // Store original function if it exists
+        if (window.updateTreeStage && !window.originalUpdateTreeStage) {
+            window.originalUpdateTreeStage = window.updateTreeStage;
+            
+            window.updateTreeStage = function() {
+                const oldStage = window.gameState.stage;
+                window.originalUpdateTreeStage.apply(this, arguments);
+                
+                // If stage changed, give resources
+                if (oldStage !== window.gameState.stage && window.gameState.resources) {
+                    // Give bonuses for advancing stages
+                    if (window.gameState.stage === "sprout") {
+                        window.gameState.resources.maxEnergy += 5;
+                        window.gameState.resources.energy += 5;
+                        showResourceFeedback("Stage Bonus", "+5 Max Energy!", "#4caf50");
+                    } else if (window.gameState.stage === "sapling") {
+                        window.gameState.resources.knowledge += 2;
+                        window.gameState.resources.data += 5;
+                        showResourceFeedback("Stage Bonus", "+2 Knowledge, +5 Data!", "#4caf50");
+                    } else if (window.gameState.stage === "mature") {
+                        window.gameState.resources.reputation += 3;
+                        window.gameState.resources.maxEnergy += 5;
+                        window.gameState.resources.energy += 5;
+                        showResourceFeedback("Stage Bonus", "+3 Reputation, +5 Max Energy!", "#4caf50");
+                    } else if (window.gameState.stage === "flowering") {
+                        // Big bonus for reaching final stage
+                        window.gameState.resources.knowledge += 3;
+                        window.gameState.resources.data += 10;
+                        window.gameState.resources.reputation += 5;
+                        showResourceFeedback("Final Stage Bonus!", "+3 Knowledge, +10 Data, +5 Reputation!", "#ff9800");
+                    }
+                    
+                    updateResourceDisplay();
+                }
+            };
+        }
+        
+        // Hook into reset game if it exists
+        if (window.resetGame && !window.originalResetGame) {
+            window.originalResetGame = window.resetGame;
+            
+            window.resetGame = function() {
+                window.originalResetGame.apply(this, arguments);
+                
+                // Reset resources
+                window.gameState.resources = {
+                    energy: 10,
+                    data: 5,
+                    knowledge: 3,
+                    reputation: 0,
+                    maxEnergy: 15
+                };
+                updateResourceDisplay();
+            };
+        }
+        
+        // Hook into initialize function
+        if (window.enhancedInitializeGame && !window.originalEnhancedInitializeGame) {
+            window.originalEnhancedInitializeGame = window.enhancedInitializeGame;
+            
+            window.enhancedInitializeGame = function() {
+                window.originalEnhancedInitializeGame.apply(this, arguments);
+                initializeResources();
+            };
+        }
     }
-};
-    // Fix for updateTreeStage
-const existingUpdateTreeStage = window.updateTreeStage || function() {};
-window.updateTreeStage = function() {
-    const oldStage = gameState.stage;
-    existingUpdateTreeStage();
-    
-    // If stage changed, give resources
-    if (oldStage !== gameState.stage && gameState.resources) {
-        // Resource bonuses code stays the same
-        // ...
-        updateResourceDisplay();
+
+    // Check for gameState periodically
+    function checkAndInitialize() {
+        if (window.gameState) {
+            setupGameHooks();
+            if (!window.gameState.resources) {
+                initializeResources();
+            } else {
+                // Resources exist, just update the display
+                createResourcePanel();
+            }
+            return true;
+        }
+        return false;
     }
-};
+
+    // Try immediately
+    if (!checkAndInitialize()) {
+        // Retry after a short delay
+        let attempts = 0;
+        const initInterval = setInterval(() => {
+            attempts++;
+            if (checkAndInitialize() || attempts > 20) {
+                clearInterval(initInterval);
+            }
+        }, 500);
+    }
+    
+    // Re-scan for buttons periodically
+    setInterval(() => {
+        if (window.gameState && window.gameState.resources) {
+            findAndUpdateFocusButtons();
+        }
+    }, 2000);
+    
+    // Manual initialization function
+    window.initResources = function() {
+        initializeResources();
+    };
+})();
 }

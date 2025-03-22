@@ -1548,7 +1548,12 @@ function checkResourceCost(focusArea) {
 }
 
 // Extend game initialization
-const originalEnhancedInitializeGame = enhancedInitializeGame || function() {};
+// With this safer approach that doesn't redeclare
+const existingInitializeGame = window.enhancedInitializeGame || function() {};
+window.enhancedInitializeGame = function() {
+    existingInitializeGame();
+    initializeResources();
+};
 window.enhancedInitializeGame = function() {
     originalEnhancedInitializeGame();
     initializeResources();

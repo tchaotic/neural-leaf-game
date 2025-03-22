@@ -351,7 +351,7 @@ function addRandomEventStyles() {
  
     
 
-});
+};
 
 // Handle tree growth based on choice
 function growTree(choice) {

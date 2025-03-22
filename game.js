@@ -1,27 +1,36 @@
+// Initialize the game
+function initializeGame() {
+    console.log("Game initialization started");
+    
+    // Set initial badge tracker display state
+    const badgeTracker = document.getElementById("badgeTracker");
+    if (badgeTracker) {
+        badgeTracker.style.display = "none";
+        updateBadgeTracker();
+    }
+    
+    // Add the random event system styles
+    addRandomEventStyles();
+    
+    // Add lastEventGrowth property to gameState if it doesn't exist
+    if (!gameState.hasOwnProperty('lastEventGrowth')) {
+        gameState.lastEventGrowth = 0;
+    }
+    
+    // Make sure all functions are available globally
+    window.growTree = growTree;
+    window.resetGame = resetGame;
+    window.finishGame = finishGame;
+    window.toggleBadgeTracker = toggleBadgeTracker;
+    
+    console.log("Game initialization completed");
+}
 
-console.log("Game script starting to load");
-
-// Initialize game state
-let gameState = {
-    growth: 0,
-    badges: {
-        knowledge: false,
-        ethics: false,
-        data: false,
-        innovation: false,
-        collaboration: false
-    },
-    stage: "seedling",
-    focusAreas: {
-        knowledge: 0,
-        ethics: 0,
-        data: 0,
-        innovation: 0,
-        collaboration: 0
-    },
-    dominantPath: null,
-    lastEventGrowth: 0
-};
+// Replace your existing load event listener with this one
+window.addEventListener("load", function() {
+    console.log("Window loaded");
+    initializeGame();
+});
 
 // Tree evolution stages - general path
 const treeStages = {
@@ -344,41 +353,11 @@ function addRandomEventStyles() {
     initializeGame();
 }
 
-// Replace your existing load event listener with this one
-window.addEventListener("load", function () {
-    console.log("Enhanced Neural Leaf Game Script Loaded!");
-    enhancedInitializeGame();
-});
-
-// Initialize the game
-function initializeGame() {
-    // Set initial badge tracker display state
-    const badgeTracker = document.getElementById("badgeTracker");
-    if (badgeTracker) {
-        badgeTracker.style.display = "none";
-        updateBadgeTracker();
-    }
-    
-    // Make sure all functions are available globally
-    // No need to reassign growTree since it's already defined as a function
-    window.resetGame = resetGame;
-    window.finishGame = finishGame;
-    window.toggleBadgeTracker = toggleBadgeTracker;
-}
-
-// Update initializeGame function to add these modifications
-function enhancedInitializeGame() {
-    // Add the random event system styles
-    addRandomEventStyles();
-    
-    // Add lastEventGrowth property to gameState if it doesn't exist
-    if (!gameState.hasOwnProperty('lastEventGrowth')) {
-        gameState.lastEventGrowth = 0;
-    }
-    
-    // Call your original initialization
+/ Replace your existing load event listener with this one
+window.addEventListener("load", function() {
+    console.log("Window loaded");
     initializeGame();
-}
+});
 
 // Handle tree growth based on choice
 function growTree(choice) {

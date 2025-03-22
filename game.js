@@ -351,11 +351,6 @@ function enhancedInitializeGame() {
     // Call your original initialization
     initializeGame();
 }
-
-// Replace your existing load event listener with this one
-window.addEventListener("load", function () {
-    console.log("Enhanced Neural Leaf Game Script Loaded!");
-    enhancedInitializeGame();
 });
 
 // Handle tree growth based on choice
@@ -1179,11 +1174,6 @@ function addAchievementStyles() {
     `;
     document.head.appendChild(style);
 }
-
-// Call this function when loading the page
-window.addEventListener("load", function() {
-    console.log("Achievement System Loaded!");
-    addAchievementStyles();
 });
     // Resource Management System - Minimal Fix
 (function() {
@@ -1646,4 +1636,15 @@ window.addEventListener("load", function() {
     // Add global manual init function
     window.initResources = initializeResources;
 })();
+window.addEventListener("load", function () {
+  console.log("Neural Leaf Game Fully Loaded!");
+
+  // Run both core systems
+  enhancedInitializeGame(); // initializes gameState
+  addAchievementStyles();   // visuals
+  initializeAchievements(); // UI
+  enhanceRandomEventHandling();
+  applySpecialEffects();    // apply any saved visuals
+  initResources();          // 💡 force resource system to run
+});
 }

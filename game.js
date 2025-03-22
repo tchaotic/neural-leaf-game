@@ -19,7 +19,6 @@ let gameState = {
     dominantPath: null,
     lastEventGrowth: 0
 };
-};
 
 // Tree evolution stages - general path
 const treeStages = {

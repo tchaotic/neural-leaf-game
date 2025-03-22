@@ -333,7 +333,6 @@ function showEventModal(event) {
     updateTreeStage();
     
    // Rest of your existing function...
-
 // Add CSS for the modal
 function addRandomEventStyles() {
     const style = document.createElement('style');

@@ -25,6 +25,8 @@ function initializeGame() {
     
     console.log("Game initialization completed");
 }
+// Call your original initialization
+    initializeGame();
 
 // Replace your existing load event listener with this one
 window.addEventListener("load", function() {
@@ -347,8 +349,7 @@ function addRandomEventStyles() {
     document.head.appendChild(style);
 }
  
-    // Call your original initialization
-    initializeGame();
+    
 
 });
 

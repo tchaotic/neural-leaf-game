@@ -9,7 +9,6 @@ let gameState = {
         collaboration: false
     },
     stage: "seedling",
-    // Track focus areas for growth path
     focusAreas: {
         knowledge: 0,
         ethics: 0,
@@ -17,12 +16,9 @@ let gameState = {
         innovation: 0,
         collaboration: 0
     },
-    // Track dominant path
     dominantPath: null,
-    // Add this to your gameState initialization
-if (!gameState.hasOwnProperty('lastEventGrowth')) {
-    gameState.lastEventGrowth = 0;
-}
+    lastEventGrowth: 0
+};
 };
 
 // Tree evolution stages - general path

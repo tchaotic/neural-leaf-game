@@ -1618,7 +1618,23 @@ window.updateTreeStage = function() {
 };
 
 // Reset resources when game resets
-const originalResetGame = resetGame;
+// With this safer approach
+const existingResetGame = window.resetGame || function() {};
+window.resetGame = function() {
+    existingResetGame();
+    
+    // Reset resources
+    if (gameState.resources) {
+        gameState.resources = {
+            energy: 10,
+            data: 5,
+            knowledge: 3,
+            reputation: 0,
+            maxEnergy: 15
+        };
+        updateResourceDisplay();
+    }
+};
 window.resetGame = function() {
     originalResetGame();
     

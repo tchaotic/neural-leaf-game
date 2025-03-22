@@ -18,7 +18,11 @@ let gameState = {
         collaboration: 0
     },
     // Track dominant path
-    dominantPath: null
+    dominantPath: null,
+    // Add this to your gameState initialization
+if (!gameState.hasOwnProperty('lastEventGrowth')) {
+    gameState.lastEventGrowth = 0;
+}
 };
 
 // Tree evolution stages - general path
@@ -377,11 +381,10 @@ function enhancedInitializeGame() {
     initializeGame();
 }
 
-
-// Execute when DOM is fully loaded
+// Replace your existing load event listener with this one
 window.addEventListener("load", function () {
-    console.log("Neural Leaf Game Script Loaded!");
-    initializeGame();
+    console.log("Enhanced Neural Leaf Game Script Loaded!");
+    enhancedInitializeGame();
 });
 
 // Initialize the game
@@ -412,6 +415,14 @@ function growTree(choice) {
     
     // Increment focus area
     gameState.focusAreas[choice] += 1;
+
+    // Check if a random event should occur
+const randomEvent = checkForRandomEvent();
+if (randomEvent) {
+    setTimeout(() => {
+        showEventModal(randomEvent);
+    }, 500); // Short delay for better user experience
+}
     
     // Determine dominant path (highest focus area)
     updateDominantPath();

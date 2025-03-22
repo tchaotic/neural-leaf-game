@@ -308,21 +308,6 @@ function showEventModal(event) {
     }, 10);
 }
 
-    // Determine dominant path (highest focus area)
-    updateDominantPath();
-    
-    // Award badge if not already earned
-    if (!gameState.badges[choice]) {
-        gameState.badges[choice] = true;
-        updateBadgeTracker();
-    }
-    
-    // Update tree appearance based on growth level and dominant path
-    updateTreeStage();
-    
-    // Rest of your existing function...
-}
-
 // Add CSS for the modal
 function addRandomEventStyles() {
     const style = document.createElement('style');
@@ -336,16 +321,6 @@ function addRandomEventStyles() {
     `;
     document.head.appendChild(style);
 }
- 
-    // Call your original initialization
-    initializeGame();
-}
-
-// Replace your existing load event listener with this one
-window.addEventListener("load", function () {
-    console.log("Enhanced Neural Leaf Game Script Loaded!");
-    enhancedInitializeGame();
-});
 
 // Initialize the game
 function initializeGame() {
@@ -377,6 +352,12 @@ function enhancedInitializeGame() {
     initializeGame();
 }
 
+// Replace your existing load event listener with this one
+window.addEventListener("load", function () {
+    console.log("Enhanced Neural Leaf Game Script Loaded!");
+    enhancedInitializeGame();
+});
+
 // Handle tree growth based on choice
 function growTree(choice) {
     console.log("growTree function called with choice:", choice);
@@ -391,12 +372,12 @@ function growTree(choice) {
     gameState.focusAreas[choice] += 1;
 
     // Check if a random event should occur
-const randomEvent = checkForRandomEvent();
-if (randomEvent) {
-    setTimeout(() => {
-        showEventModal(randomEvent);
-    }, 500); // Short delay for better user experience
-}
+    const randomEvent = checkForRandomEvent();
+    if (randomEvent) {
+        setTimeout(() => {
+            showEventModal(randomEvent);
+        }, 500); // Short delay for better user experience
+    }
     
     // Determine dominant path (highest focus area)
     updateDominantPath();
@@ -649,7 +630,8 @@ function resetGame() {
             innovation: 0,
             collaboration: 0
         },
-        dominantPath: null
+        dominantPath: null,
+        lastEventGrowth: 0
     };
     
     // Reset UI

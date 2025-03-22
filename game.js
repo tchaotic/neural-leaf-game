@@ -368,7 +368,7 @@ if (randomEvent) {
     setTimeout(() => {
         showEventModal(randomEvent);
     }, 500); // Short delay for better user experience
-}
+}}
     
     // Determine dominant path (highest focus area)
     updateDominantPath();

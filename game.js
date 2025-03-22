@@ -1,5 +1,4 @@
-
-        // Initialize game state
+// Initialize game state
 let gameState = {
     growth: 0,
     badges: {
@@ -199,4 +198,4 @@ function toggleBadgeTracker() {
         const currentDisplay = window.getComputedStyle(tracker).display;
         tracker.style.display = currentDisplay === "none" ? "block" : "none";
     }
-}      
+}

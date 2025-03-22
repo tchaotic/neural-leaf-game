@@ -336,17 +336,7 @@ function addRandomEventStyles() {
     `;
     document.head.appendChild(style);
 }
-
-// Update initializeGame function to add these modifications
-function enhancedInitializeGame() {
-    // Add the random event system styles
-    addRandomEventStyles();
-    
-    // Add lastEventGrowth property to gameState if it doesn't exist
-    if (!gameState.hasOwnProperty('lastEventGrowth')) {
-        gameState.lastEventGrowth = 0;
-    }
-    
+ 
     // Call your original initialization
     initializeGame();
 }

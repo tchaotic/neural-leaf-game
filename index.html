@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neural Leaf Game</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 20px; background: #f9f9f9; }
+    .tree { font-size: 50px; margin: 20px; transition: transform 0.5s ease-in-out; }
+    .button-container { margin-top: 20px; }
+    button { padding: 10px 20px; margin: 5px; font-size: 16px; cursor: pointer; }
+    .badge { background-color: #f0f4c3; border: 1px solid #cddc39; border-radius: 10px; padding: 10px 15px; font-size: 14px; color: #33691e; }
+    .progress-container { margin-top: 8px; background-color: #e0e0e0; border-radius: 5px; height: 10px; width: 100%; overflow: hidden; }
+    .progress-bar { height: 10px; transition: width 0.3s; }
+    #badgeTracker { display: none; max-width: 600px; margin: 10px auto; text-align: left; }
+    #summary { margin-top: 20px; font-weight: bold; color: #333; }
+  </style>
+</head>
+<body>
+  <div class="tree" id="tree">🌱</div>
+  <p id="description">Your AI tree is evolving based on your choices.</p>
+
+  <div class="button-container">
+    <button onclick="growTree('knowledge')">Feed AI Knowledge</button>
+    <button onclick="growTree('ethics')">Guide AI Ethically</button>
+    <button onclick="growTree('data')">Train with Data</button>
+    <button onclick="growTree('innovation')">Enhance with Innovation</button>
+    <button onclick="growTree('collaboration')">Improve Through Collaboration</button>
+    <button id="resetBtn" onclick="resetGame()" style="display:none;">Restart Game</button>
+    <button id="finishBtn" onclick="finishGame()">Finish Game</button>
+  </div>
+
+  <button onclick="toggleBadgeTracker()">🏅 View Badge Tracker</button>
+  <div id="badgeTracker"></div>
+  <div id="summary"></div>
+
+  <script src="game.js"></script>
+</body>
+</html>

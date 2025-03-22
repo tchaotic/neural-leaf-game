@@ -313,31 +313,6 @@ function showEventModal(event) {
     }, 10);
 }
 
-// Modify the growTree function to potentially trigger random events
-// Add this to the existing growTree function, right after incrementing growth
-// and before updating the tree stage
-function modifiedGrowTree(choice) {
-    console.log("growTree function called with choice:", choice);
-    
-    let tree = document.getElementById("tree");
-    let description = document.getElementById("description");
-    
-    // Increment growth
-    gameState.growth += 1;
-    
-    // Increment focus area
-    gameState.focusAreas[choice] += 1;
-    
-    // *** ADD THIS SECTION TO CHECK FOR RANDOM EVENTS ***
-    // Check if a random event should occur
-    const randomEvent = checkForRandomEvent();
-    if (randomEvent) {
-        setTimeout(() => {
-            showEventModal(randomEvent);
-        }, 500); // Short delay for better user experience
-    }
-    // *** END OF NEW SECTION ***
-    
     // Determine dominant path (highest focus area)
     updateDominantPath();
     

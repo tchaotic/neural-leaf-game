@@ -348,10 +348,6 @@ function addRandomEventStyles() {
     `;
     document.head.appendChild(style);
 }
- 
-    
-
-};
 
 // Handle tree growth based on choice
 function growTree(choice) {

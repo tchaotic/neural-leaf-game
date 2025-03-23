@@ -1,0 +1,66 @@
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #f3f4f6;
+  padding: 40px;
+  text-align: center;
+}
+.circular-badge {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+  border: 4px solid #3b82f6;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+  color: #1e40af;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+  margin: 10px;
+  transition: transform 0.3s ease;
+}
+.circular-badge .label {
+  font-size: 14px;
+  margin-top: 6px;
+  color: #0f172a;
+  font-weight: bold;
+}
+.circular-badge .level {
+  font-size: 13px;
+  color: #334155;
+}
+.circular-badge.unlocked:hover {
+  transform: scale(1.1);
+}
+.badge-collaborator {
+  background: linear-gradient(to bottom, #fce7f3, #fbcfe8);
+  border-color: #db2777;
+  color: #831843;
+}
+.badge-ethical {
+  background: linear-gradient(to bottom, #dcfce7, #bbf7d0);
+  border-color: #16a34a;
+  color: #064e3b;
+}
+.badge-innovator {
+  background: linear-gradient(to bottom, #fef9c3, #fde68a);
+  border-color: #ca8a04;
+  color: #78350f;
+}
+.locked {
+  filter: grayscale(1);
+  opacity: 0.35;
+}
+.glow {
+  box-shadow: 0 0 14px 6px rgba(234, 179, 8, 0.6);
+  border-width: 5px;
+}
+#badgePanel {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 30px auto;
+  max-width: 700px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}

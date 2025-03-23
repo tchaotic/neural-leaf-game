@@ -1185,5 +1185,5 @@ window.addEventListener("load", function() {
     console.log("Achievement System Loaded!");
     addAchievementStyles();
 });
-};}, 1000);
+
 }

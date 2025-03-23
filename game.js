@@ -1,38 +1,41 @@
-window.addEventListener("load", function () {
-    setTimeout(() => {
-        console.log("Neural Leaf Game Script Loaded!");
+const earnedBadges = {
+  teamBuilder: { label: "Team Builder", emoji: "🤝", level: 2, type: "collaborator", locked: false },
+  ethicsLeader: { label: "Ethics Leader", emoji: "⚖️", level: 3, type: "ethical", locked: false },
+  innovator: { label: "Innovator", emoji: "💡", level: 1, type: "innovator", locked: false },
+  unknown: { label: "Ethics Leader", emoji: "⚖️", level: 0, type: "ethical", locked: true }
+};
 
-        window.growTree = function(choice) {
-            console.log("growTree function called with choice:", choice);
-            let tree = document.getElementById("tree");
-            let description = document.getElementById("description");
-            if (tree && description) {
-                tree.textContent = "🌿";
-                description.textContent = "Your AI tree is growing!";
-            }
-        };
+function toggleBadgeTracker() {
+  const panel = document.getElementById("badgePanel");
+  if (panel) {
+    const isVisible = panel.style.display === "block";
+    panel.style.display = isVisible ? "none" : "block";
 
-        window.finishGame = function() {
-            document.getElementById("summary").textContent = "🌟 Final Summary: You’ve grown your AI tree!";
-            document.getElementById("resetBtn").style.display = "inline-block";
-        };
+    if (!isVisible) {
+      renderCircularBadges(earnedBadges);
+    }
+  }
+}
 
-        window.resetGame = function() {
-            let tree = document.getElementById("tree");
-            let description = document.getElementById("description");
-            if (tree && description) {
-                tree.textContent = "🌱";
-                description.textContent = "Your AI tree is evolving based on your choices.";
-                document.getElementById("summary").textContent = "";
-                document.getElementById("resetBtn").style.display = "none";
-            }
-        };
+function renderCircularBadges(badgeData = {}) {
+  const tracker = document.getElementById("badgeTracker");
+  if (!tracker) return;
 
-        window.toggleBadgeTracker = function() {
-            let tracker = document.getElementById("badgeTracker");
-            if (tracker) {
-                tracker.style.display = tracker.style.display === "none" ? "block" : "none";
-            }
-        };
-    }, 300);
-});
+  tracker.innerHTML = "";
+
+  Object.entries(badgeData).forEach(([key, badge]) => {
+    const { label, emoji, level, type, locked } = badge;
+
+    const badgeEl = document.createElement("div");
+    badgeEl.className = `circular-badge badge-${type} ${locked ? "locked" : "unlocked"}`;
+    if (!locked && level >= 3) badgeEl.classList.add("glow");
+
+    badgeEl.innerHTML = \`
+      \${emoji}
+      <span class="label">\${label}</span>
+      <span class="level">\${locked ? "Locked" : \`Level \${level}\`}</span>
+    \`;
+
+    tracker.appendChild(badgeEl);
+  });
+}

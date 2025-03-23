@@ -8,7 +8,7 @@ This project was developed as a collaboration between **human creativity** and *
 
 ## 🚀 Live Demo
 
-👉 [Play the game](https://yourusername.github.io/neural-leaf-game/) (replace with your GitHub Pages link after setup)
+👉 [Play the game](https://tkaotic.github.io/neural-leaf-game/) (replace with your GitHub Pages link after setup)
 
 ---
 
